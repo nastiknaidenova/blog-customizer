@@ -1,4 +1,5 @@
-import { ReactElement, forwardRef, useState } from 'react';
+import { ReactElement, useState, useRef } from 'react';
+import { useOutsideClick } from './hooks/useOutsideClick';
 
 import { Button } from 'components/button';
 import {
@@ -61,13 +62,16 @@ const paramConfigs: ParamConfig[] = [
 type ArticleParamsFormProps = {
 	isOpen: boolean;
 	onParamsChange: (newParams: ArticleStateType) => void;
+	setIsOpen: (isOpen: boolean) => void;
 };
 
-export const ArticleParamsForm = forwardRef<
-	HTMLDivElement,
-	ArticleParamsFormProps
->(function ArticleParamsForm(props, ref): ReactElement {
+export const ArticleParamsForm = (
+	props: ArticleParamsFormProps
+): ReactElement => {
 	const [params, setParams] = useState<ArticleStateType>(defaultArticleState);
+	const formRef = useRef<HTMLDivElement>(null);
+
+	useOutsideClick({ ref: formRef, callback: () => props.setIsOpen(false) });
 
 	const handleParamChange =
 		(key: keyof ArticleStateType) => (selected: OptionType) => {
@@ -87,11 +91,14 @@ export const ArticleParamsForm = forwardRef<
 	return (
 		<>
 			<aside
-				ref={ref}
+				ref={formRef}
 				className={`${styles.container} ${
 					props.isOpen ? styles.container_open : ''
 				}`}>
-				<form className={styles.form} onSubmit={handleApply}>
+				<form
+					className={styles.form}
+					onReset={handleReset}
+					onSubmit={handleApply}>
 					<Text as='h2' size={31} weight={800} uppercase>
 						{'задайте параметры'}
 					</Text>
@@ -118,11 +125,11 @@ export const ArticleParamsForm = forwardRef<
 						</div>
 					))}
 					<div className={styles.bottomContainer}>
-						<Button title='Сбросить' type='reset' onClick={handleReset} />
+						<Button title='Сбросить' type='reset' />
 						<Button title='Применить' type='submit' />
 					</div>
 				</form>
 			</aside>
 		</>
 	);
-});
+};
